@@ -1,61 +1,108 @@
-/* Surge Day Counter v1.5 — offline generic panel script.
- * Module parameters arrive as $argument: YYYY-MM-DD|title. UTC+08:00.
- * countup includes the start day. countdown is calendar days until target.
+/**
+ * Surge Day Counter v1.6 — based on the supplied v1.0.0.
+ * v1.0 event keys: un1/ud1 ... un3/ud3; dn1/dd1 ... dn3/dd3.
+ * Count-up includes the start day. Calendar boundary: fixed UTC+08:00.
+ * Default companion module creates only the count-up panel.
  */
 (function () {
   'use strict';
-  var SETTINGS = {
-    title: '每一天都算数',
-    mode: 'countup', // countup | countdown
-    date: '2026-07-24',
-    utcOffsetMinutes: 480
-  };
-  var DAY = 86400000;
-  function dateDay(text) {
-    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
-    if (!m || +m[1] < 100) throw new Error('日期须为 YYYY-MM-DD，年份至少为0100');
-    var t = Date.UTC(+m[1], +m[2] - 1, +m[3]);
-    var d = new Date(t);
-    if (d.getUTCFullYear() !== +m[1] || d.getUTCMonth() !== +m[2] - 1 || d.getUTCDate() !== +m[3]) {
-      throw new Error('日期不存在：' + text);
-    }
-    return t / DAY;
+
+  var MS_PER_DAY = 86400000;
+
+  function argumentsToObject(raw) {
+    var map = Object.create(null);
+    String(raw || '').split('&').forEach(function (part) {
+      var index = part.indexOf('=');
+      if (index > 0) {
+        var key = part.slice(0, index).trim().toLowerCase();
+        map[key] = part.slice(index + 1).trim();
+      }
+    });
+    return map;
   }
-  var result;
+
+  // Strict ISO date check. Date.UTC is used ONLY after extracting the local
+  // calendar date; this avoids daylight-saving-time off-by-one errors.
+  function calendarDay(dateString) {
+    var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
+    if (!match) return null;
+    var year = Number(match[1]);
+    var month = Number(match[2]);
+    var day = Number(match[3]);
+    if (year < 1000 || year > 9999 || month < 1 || month > 12 || day < 1 || day > 31) {
+      return null;
+    }
+    var epoch = Date.UTC(year, month - 1, day);
+    var check = new Date(epoch);
+    if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) {
+      return null;
+    }
+    return Math.round(epoch / MS_PER_DAY);
+  }
+
+  function getEvents(cfg, mode) {
+    var prefix = mode === 'up' ? 'u' : 'd';
+    var results = [];
+    for (var i = 1; i <= 3; i++) {
+      var title = (cfg[prefix + 'n' + i] || '').trim();
+      var dateString = (cfg[prefix + 'd' + i] || '').trim();
+      if (!dateString || dateString === '-' || dateString.toLowerCase() === 'off') continue;
+      var numericDay = calendarDay(dateString);
+      results.push({
+        name: title || (mode === 'up' ? '起始日' : '目标日') + i,
+        date: dateString,
+        day: numericDay
+      });
+    }
+    return results;
+  }
+
+  function formatLine(event, mode, todayDay) {
+    if (event.day === null) return '⚠️ ' + event.name + '：日期格式错误（' + event.date + '）';
+    var difference = event.day - todayDay;
+    if (mode === 'down') {
+      if (difference > 0) return '⏳ ' + event.name + '：还剩 ' + difference + ' 天';
+      if (difference === 0) return '🎯 ' + event.name + '：就是今天（0 天）';
+      return '✅ ' + event.name + '：已过去 ' + (-difference) + ' 天';
+    }
+    if (difference <= 0) return '📈 ' + event.name + '：第 ' + (1 - difference) + ' 天';
+    return '🗓 ' + event.name + '：还有 ' + difference + ' 天开始';
+  }
+
+  function run() {
+    var rawArgument = typeof $argument === 'string' ? $argument : '';
+    var cfg = argumentsToObject(rawArgument);
+    var panelName = (typeof $input !== 'undefined' && $input && $input.panelName) || '';
+    if (!rawArgument.trim()) throw new Error('未收到事件参数，请更新配套模块并重新载入配置');
+    if (/\{\{\{/.test(rawArgument)) throw new Error('模块参数未替换，请检查参数保存和客户端版本');
+    var mode = cfg.mode || (panelName === 'DayCounter-Countdown' ? 'down' : 'up');
+    if (mode !== 'up' && mode !== 'down') throw new Error('mode 须为 up 或 down');
+    var todayDay = Math.floor((Date.now() + 480 * 60000) / MS_PER_DAY);
+    console.log('[DayCounter v1.6] mode=' + mode + ', panel=' + panelName);
+    // Log only dates, not user event names, to verify the effective arguments.
+    console.log('[DayCounter v1.6] dates=' + [cfg.ud1 || '-', cfg.ud2 || '-', cfg.ud3 || '-'].join(','));
+    var events = getEvents(cfg, mode);
+    var lines = events.map(function (event) { return formatLine(event, mode, todayDay); });
+
+    if (lines.length === 0) {
+      lines = [mode === 'up' ? '还没有启用正计时事件' : '还没有启用倒计时事件', '编辑模块参数，填写日期 YYYY-MM-DD'];
+    }
+    $done({
+      title: mode === 'up' ? '📈 正计时' : '⏳ 倒计时',
+      content: lines.join('\n'),
+      icon: mode === 'up' ? 'chart.line.uptrend.xyaxis' : 'calendar',
+      'icon-color': mode === 'up' ? '#288E76' : '#4479C4'
+    });
+  }
+
   try {
-    var s = SETTINGS;
-    if (typeof $argument === 'undefined' || !String($argument).trim()) {
-      throw new Error('未收到模块参数，请更新模块、保存参数后重新载入配置');
-    }
-    if (String($argument).trim()) {
-      var argument = String($argument);
-      var separator = argument.indexOf('|');
-      if (separator < 0) throw new Error('模块参数格式错误，请更新模块与脚本');
-      s.date = argument.slice(0, separator).trim();
-      s.title = argument.slice(separator + 1).trim();
-      if (!s.title) throw new Error('题目不能为空');
-      if (/\{\{\{/.test(s.date + s.title)) throw new Error('模块参数未替换，请检查客户端参数表支持');
-    }
-    if (s.mode !== 'countup' && s.mode !== 'countdown') throw new Error('mode 须为 countup 或 countdown');
-    if (typeof s.utcOffsetMinutes !== 'number' || !isFinite(s.utcOffsetMinutes) || Math.abs(s.utcOffsetMinutes) > 840) {
-      throw new Error('utcOffsetMinutes 无效');
-    }
-    var today = Math.floor((Date.now() + s.utcOffsetMinutes * 60000) / DAY);
-    var target = dateDay(s.date);
-    var delta = today - target;
-    var message;
-    if (s.mode === 'countup') {
-      message = delta < 0 ? '尚未开始 · 还有 ' + (-delta) + ' 天' : '第 ' + (delta + 1) + ' 天';
-    } else {
-      message = delta < 0 ? '还有 ' + (-delta) + ' 天' : delta === 0 ? '就是今天 · 0 天' : '已过去 ' + delta + ' 天';
-    }
-    // Text-only panel: topic above, day count below. No dates or status icon.
-    result = {
-      title: message,
-      content: s.title
-    };
+    run();
   } catch (error) {
-    result = {title: 'Day Counter · 配置错误', content: String(error.message || error), style: 'error'};
+    $done({
+      title: '日期计时器 · 运行错误',
+      content: String(error && error.message ? error.message : error),
+      icon: 'exclamationmark.triangle',
+      'icon-color': '#D06537'
+    });
   }
-  $done(result);
-}());
+})();
