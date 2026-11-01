@@ -1,5 +1,5 @@
 /**
- * Surge Day Counter v1.6.2 — based on the supplied v1.0.0.
+ * Surge Day Counter v1.7 — based on the supplied v1.0.0.
  * v1.0 event keys: un1/ud1 ... un3/ud3; dn1/dd1 ... dn3/dd3.
  * Count-up includes the start day. Calendar boundary: fixed UTC+08:00.
  * Default companion module creates only the count-up panel.
@@ -57,16 +57,18 @@
     return results;
   }
 
-  function formatLine(event, mode, todayDay) {
-    if (event.day === null) return '⚠️ ' + event.name + '：日期格式错误（' + event.date + '）';
+  function dayLabel(event, mode, todayDay) {
+    if (event.day === null) return '请检查日期';
     var difference = event.day - todayDay;
     if (mode === 'down') {
-      if (difference > 0) return '⏳ ' + event.name + '：还剩 ' + difference + ' 天';
-      if (difference === 0) return '🎯 ' + event.name + '：就是今天（0 天）';
-      return '✅ ' + event.name + '：已过去 ' + (-difference) + ' 天';
+      if (difference > 0) return '还剩 ' + difference + ' 天';
+      return difference === 0 ? '就是今天' : '已过去 ' + (-difference) + ' 天';
     }
-    if (difference <= 0) return '📈 ' + event.name + '：第 ' + (1 - difference) + ' 天';
-    return '🗓 ' + event.name + '：还有 ' + difference + ' 天开始';
+    return difference <= 0 ? '第 ' + (1 - difference) + ' 天' : '还有 ' + difference + ' 天开始';
+  }
+
+  function formatLine(event, mode, todayDay) {
+    return event.name + ' · ' + dayLabel(event, mode, todayDay);
   }
 
   function run() {
@@ -78,20 +80,26 @@
     var mode = cfg.mode || (panelName === 'DayCounter-Countdown' ? 'down' : 'up');
     if (mode !== 'up' && mode !== 'down') throw new Error('mode 须为 up 或 down');
     var todayDay = Math.floor((Date.now() + 480 * 60000) / MS_PER_DAY);
-    console.log('[DayCounter v1.6.2] mode=' + mode + ', panel=' + panelName);
+    console.log('[DayCounter v1.7] mode=' + mode + ', panel=' + panelName);
     // Log only dates, not user event names, to verify the effective arguments.
-    console.log('[DayCounter v1.6.2] dates=' + [cfg.ud1 || '-', cfg.ud2 || '-', cfg.ud3 || '-'].join(','));
+    console.log('[DayCounter v1.7] dates=' + [cfg.ud1 || '-', cfg.ud2 || '-', cfg.ud3 || '-'].join(','));
     var events = getEvents(cfg, mode);
     var lines = events.map(function (event) { return formatLine(event, mode, todayDay); });
 
-    if (lines.length === 0) {
-      lines = [mode === 'up' ? '还没有启用正计时事件' : '还没有启用倒计时事件', '编辑模块参数，填写日期 YYYY-MM-DD'];
+    var title = mode === 'up' ? '相伴的日子' : '期待的日子';
+    var content = lines.join('\n');
+    var hasError = events.some(function (event) { return event.day === null; });
+    if (events.length === 1 && !hasError) {
+      title = dayLabel(events[0], mode, todayDay);
+      content = events[0].name;
+    } else if (events.length === 0) {
+      content = '添加一个值得记住的日子';
     }
     $done({
-      title: mode === 'up' ? '📈 正计时 · 1.6.2' : '⏳ 倒计时 · 1.6.2',
-      content: lines.join('\n'),
-      icon: mode === 'up' ? 'chart.line.uptrend.xyaxis' : 'calendar',
-      'icon-color': mode === 'up' ? '#288E76' : '#4479C4'
+      title: title,
+      content: content,
+      icon: hasError ? 'exclamationmark.triangle' : 'heart.fill',
+      'icon-color': hasError ? '#D06537' : '#D68C95'
     });
   }
 
