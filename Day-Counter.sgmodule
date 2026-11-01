@@ -1,0 +1,8 @@
+#!name=Surge Day Counter v1.3
+#!desc=简洁正计时面板，仅显示题目与天数；默认从2026-07-24起包含起始日。请将Day-Counter.js放入当前配置目录，参数在脚本SETTINGS中修改。
+
+[Panel]
+DayCounterV13 = title="每一天都算数",content="轻点刷新",script-name=DayCounterV13Script,update-interval=1
+
+[Script]
+DayCounterV13Script = type=generic,script-path=Day-Counter.js,timeout=5
