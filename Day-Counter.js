@@ -1,5 +1,5 @@
-/* Surge Day Counter v1.3 — offline generic panel script.
- * Edit SETTINGS below. Dates use YYYY-MM-DD; timezone is fixed UTC+08:00.
+/* Surge Day Counter v1.4 — offline generic panel script.
+ * Module parameters arrive as $argument: YYYY-MM-DD|title. UTC+08:00.
  * countup includes the start day. countdown is calendar days until target.
  */
 (function () {
@@ -24,6 +24,14 @@
   var result;
   try {
     var s = SETTINGS;
+    if (typeof $argument !== 'undefined' && String($argument).trim()) {
+      var argument = String($argument);
+      var separator = argument.indexOf('|');
+      if (separator < 0) throw new Error('模块参数格式错误，请更新模块与脚本');
+      s.date = argument.slice(0, separator).trim();
+      s.title = argument.slice(separator + 1).trim();
+      if (!s.title) throw new Error('题目不能为空');
+    }
     if (s.mode !== 'countup' && s.mode !== 'countdown') throw new Error('mode 须为 countup 或 countdown');
     if (typeof s.utcOffsetMinutes !== 'number' || !isFinite(s.utcOffsetMinutes) || Math.abs(s.utcOffsetMinutes) > 840) {
       throw new Error('utcOffsetMinutes 无效');
