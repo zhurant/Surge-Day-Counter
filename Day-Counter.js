@@ -1,4 +1,4 @@
-/* Surge Day Counter v1.4 — offline generic panel script.
+/* Surge Day Counter v1.5 — offline generic panel script.
  * Module parameters arrive as $argument: YYYY-MM-DD|title. UTC+08:00.
  * countup includes the start day. countdown is calendar days until target.
  */
@@ -24,13 +24,17 @@
   var result;
   try {
     var s = SETTINGS;
-    if (typeof $argument !== 'undefined' && String($argument).trim()) {
+    if (typeof $argument === 'undefined' || !String($argument).trim()) {
+      throw new Error('未收到模块参数，请更新模块、保存参数后重新载入配置');
+    }
+    if (String($argument).trim()) {
       var argument = String($argument);
       var separator = argument.indexOf('|');
       if (separator < 0) throw new Error('模块参数格式错误，请更新模块与脚本');
       s.date = argument.slice(0, separator).trim();
       s.title = argument.slice(separator + 1).trim();
       if (!s.title) throw new Error('题目不能为空');
+      if (/\{\{\{/.test(s.date + s.title)) throw new Error('模块参数未替换，请检查客户端参数表支持');
     }
     if (s.mode !== 'countup' && s.mode !== 'countdown') throw new Error('mode 须为 countup 或 countdown');
     if (typeof s.utcOffsetMinutes !== 'number' || !isFinite(s.utcOffsetMinutes) || Math.abs(s.utcOffsetMinutes) > 840) {
@@ -47,8 +51,8 @@
     }
     // Text-only panel: topic above, day count below. No dates or status icon.
     result = {
-      title: s.title,
-      content: message
+      title: message,
+      content: s.title
     };
   } catch (error) {
     result = {title: 'Day Counter · 配置错误', content: String(error.message || error), style: 'error'};

@@ -1,10 +1,10 @@
-#!name=Surge Day Counter v1.4
-#!desc=简洁正计时，仅显示题目与天数。起始日计为第1天；北京时间换日。脚本须位于配置目录。
-#!arguments=title:每一天都算数,start_date:2026-07-24
-#!arguments-desc=title 为题目；start_date 为起始日期，格式 YYYY-MM-DD。题目请勿使用英文双引号、逗号或换行。修改后刷新面板。
+#!name=Surge Day Counter v1.5
+#!desc=正计时：上方突出天数，下方显示题目；起始日计第1天，按北京时间换日。修改参数后保存并刷新面板。
+#!arguments=title:🌱 每一天都算数,start_date:2026-07-24
+#!arguments-desc=title：题目，可带Emoji；start_date：起始日期YYYY-MM-DD。勿输入英文双引号、英文逗号或换行。保存后重新载入配置并刷新面板。
 
 [Panel]
-DayCounter = title="每一天都算数",content="轻点刷新",script-name=DayCounterScript,update-interval=1
+DayCounterV15 = title="{{{title}}}",content="轻点刷新",script-name=DayCounterScriptV15,update-interval=1
 
 [Script]
-DayCounterScript = type=generic,script-path=https://raw.githubusercontent.com/zhurant/Surge-Day-Counter/refs/heads/main/Day-Counter.js,timeout=5,argument="{{{start_date}}}|{{{title}}}"
+DayCounterScriptV15 = type=generic,script-path=https://raw.githubusercontent.com/zhurant/Surge-Day-Counter/refs/heads/main/Day-Counter.js,script-update-interval=3600,timeout=5,argument="{{{start_date}}}|{{{title}}}"
