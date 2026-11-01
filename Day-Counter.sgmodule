@@ -7,4 +7,4 @@
 DayCounter-Countup-V17 = title="相伴的日子",content="轻点刷新",script-name=DayCounterV17,update-interval=1
 
 [Script]
-DayCounterV17 = type=generic,script-path=https://raw.githubusercontent.com/zhurant/Surge-Day-Counter/refs/heads/main/Day-Counter.js?v=1.6.2,script-update-interval=3600,timeout=5,argument="mode=up&un1={{{un1}}}&ud1={{{ud1}}}&un2={{{un2}}}&ud2={{{ud2}}}&un3={{{un3}}}&ud3={{{ud3}}}"
+DayCounterV17 = type=generic,script-path=https://raw.githubusercontent.com/zhurant/Surge-Day-Counter/refs/heads/main/Day-Counter.js?v=1.7,script-update-interval=3600,timeout=5,argument="mode=up&un1={{{un1}}}&ud1={{{ud1}}}&un2={{{un2}}}&ud2={{{ud2}}}&un3={{{un3}}}&ud3={{{ud3}}}"
