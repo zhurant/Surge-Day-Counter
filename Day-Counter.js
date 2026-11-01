@@ -1,5 +1,5 @@
 /**
- * Surge Day Counter v1.6 — based on the supplied v1.0.0.
+ * Surge Day Counter v1.6.1 — based on the supplied v1.0.0.
  * v1.0 event keys: un1/ud1 ... un3/ud3; dn1/dd1 ... dn3/dd3.
  * Count-up includes the start day. Calendar boundary: fixed UTC+08:00.
  * Default companion module creates only the count-up panel.
@@ -24,7 +24,7 @@
   // Strict ISO date check. Date.UTC is used ONLY after extracting the local
   // calendar date; this avoids daylight-saving-time off-by-one errors.
   function calendarDay(dateString) {
-    var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
+    var match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(dateString);
     if (!match) return null;
     var year = Number(match[1]);
     var month = Number(match[2]);
@@ -78,9 +78,9 @@
     var mode = cfg.mode || (panelName === 'DayCounter-Countdown' ? 'down' : 'up');
     if (mode !== 'up' && mode !== 'down') throw new Error('mode 须为 up 或 down');
     var todayDay = Math.floor((Date.now() + 480 * 60000) / MS_PER_DAY);
-    console.log('[DayCounter v1.6] mode=' + mode + ', panel=' + panelName);
+    console.log('[DayCounter v1.6.1] mode=' + mode + ', panel=' + panelName);
     // Log only dates, not user event names, to verify the effective arguments.
-    console.log('[DayCounter v1.6] dates=' + [cfg.ud1 || '-', cfg.ud2 || '-', cfg.ud3 || '-'].join(','));
+    console.log('[DayCounter v1.6.1] dates=' + [cfg.ud1 || '-', cfg.ud2 || '-', cfg.ud3 || '-'].join(','));
     var events = getEvents(cfg, mode);
     var lines = events.map(function (event) { return formatLine(event, mode, todayDay); });
 

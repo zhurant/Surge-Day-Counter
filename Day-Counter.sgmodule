@@ -1,7 +1,7 @@
-#!name=Surge Day Counter v1.6
+#!name=Surge Day Counter v1.6.1
 #!desc=参照v1.0多事件面板；正计时包含起始日，按北京时间换日。仅显示正计时面板。
 #!arguments=un1:每一天都算数,ud1:2026-07-24,un2:事件二,ud2:off,un3:事件三,ud3:off
-#!arguments-desc=un1/2/3为事件名称，支持Emoji；ud1/2/3为对应起始日期YYYY-MM-DD。日期填off或-停用该事件。勿用英文逗号、双引号、&或换行。修改后保存并刷新面板。
+#!arguments-desc=un1/2/3为事件名称，支持Emoji；ud1/2/3为对应起始日期YYYY-MM-DD（也支持2026-1-1）。日期填off或-停用该事件。勿用英文逗号、双引号、&或换行。修改后保存并刷新面板。
 
 [Panel]
 DayCounter-Countup = title="📈 正计时",content="轻点刷新",script-name=DayCounterV16,update-interval=1
